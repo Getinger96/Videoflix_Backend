@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_rq',
     'videoflix.apps.VideoflixConfig',
+    
 ]
 
 MIDDLEWARE = [
@@ -103,15 +104,7 @@ CACHES = {
     }
 }
 
-RQ_QUEUES = {
-    'default': {
-        'HOST': os.environ.get("REDIS_HOST", default="redis"),
-        'PORT': os.environ.get("REDIS_PORT", default=6379),
-        'DB': os.environ.get("REDIS_DB", default=0),
-        'DEFAULT_TIMEOUT': 900,
-        'REDIS_CLIENT_KWARGS': {},
-    },
-}
+
 
 
 # Password validation
@@ -155,3 +148,19 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+
+
+RQ_QUEUES = {
+    'default': {
+        'HOST': 'redis',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+        
+    },
+    
+   
+}
+
