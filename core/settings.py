@@ -45,10 +45,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_rq',
     'videoflix.apps.VideoflixConfig',
+    'debug_toolbar',
+    'import_export',
+
     
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -57,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -164,3 +169,15 @@ RQ_QUEUES = {
    
 }
 
+INTERNAL_IPS = [
+    
+    "127.0.0.1",
+]
+
+
+def show_toolbar(request):
+    return True
+
+DEBUG_TOOLBAR_CONFIG = {
+  "SHOW_TOOLBAR_CALLBACK" : show_toolbar,
+}
