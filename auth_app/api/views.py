@@ -22,6 +22,7 @@ class RegistrationView(CreateAPIView):
             user.is_active = False
             user.save()
             site=request.get_host()
+            print(site)
             mail_subject='Confirmation message'
             message=render_to_string('acc_active_email.html',{
                 'user':user,
@@ -31,8 +32,8 @@ class RegistrationView(CreateAPIView):
             })
             to_email=serializer.validated_data.get('email')
             to_list=[to_email]
-            from_email='noreply@{site}.com'
-            send_mail(mail_subject,message,from_email,to_list,fail_silently=True)
+            from_email='erich.getinger@outlook.de'
+            send_mail(mail_subject,message,from_email,to_list,fail_silently=False)
             return Response(serializer.data, status=201)
         else:
             return Response(serializer.errors, status=400)    
