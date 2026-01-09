@@ -13,6 +13,7 @@ User = get_user_model()
 
 class RegistrationView(CreateAPIView):
     serializer_class = Registrationserializer
+    
     def post(self, request):
         # Handle user registration logic here
 
@@ -24,17 +25,25 @@ class RegistrationView(CreateAPIView):
             site=request.get_host()
             print(site)
             mail_subject='Confirmation message'
+            token=account_activation_token.make_token(user)
             message=render_to_string('acc_active_email.html',{
                 'user':user,
                 'domain':site,
                 'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-                'token':account_activation_token.make_token(user),
+                'token':token,
             })
             to_email=serializer.validated_data.get('email')
             to_list=[to_email]
             from_email='erich.getinger@outlook.de'
             send_mail(mail_subject,message,from_email,to_list,fail_silently=False)
-            return Response(serializer.data, status=201)
+            registration_response={
+                'user':{
+                    'id':user.id,
+                    'email':user.email,
+                },
+                'token':token
+            }
+            return Response(registration_response, status=201)
         else:
             return Response(serializer.errors, status=400)    
         
