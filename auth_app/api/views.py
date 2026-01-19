@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-from .serializers import Registrationserializer,CustomTokenObtainPairSerializer
+from .serializers import Registrationserializer,CustomTokenObtainPairSerializer,PasswortResetSerializer, PasswortConfirmSerializer
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -210,36 +210,54 @@ class CookieRefreshView(TokenRefreshView):
          return response
     
 
-@method_decorator(login_not_required, name="dispatch")
-class PasswordResetView(PasswordContextMixin, FormView):
-    email_template_name = "templates/password_reset_subject.html"
-    extra_email_context = None
-    form_class = PasswordResetForm
-    from_email = None
-    html_email_template_name = None
-    subject_template_name = "templates/password_reset_subject.html"
-    success_url = reverse_lazy("password_reset_done")
-    template_name = "registration/password_reset_form.html"
-    title = _("Password reset")
-    token_generator = default_token_generator
+class PasswortResetView(CreateAPIView):
+    serializer_class = PasswortResetSerializer
 
-    @method_decorator(csrf_protect)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    def post(self, request):
+        # Handle user registration logic here
 
-    def form_valid(self, form):
-        opts = {
-            "use_https": self.request.is_secure(),
-            "token_generator": self.token_generator,
-            "from_email": self.from_email,
-            "email_template_name": self.email_template_name,
-            "subject_template_name": self.subject_template_name,
-            "request": self.request,
-            "html_email_template_name": self.html_email_template_name,
-            "extra_email_context": self.extra_email_context,
-        }
-        form.save(**opts)
-        return super().form_valid(form)
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = User.objects.get(email=serializer.validated_data.get('email'))
+            site=request.get_host()
+            print(site)
+            mail_subject='Passwort Reset message'
+            token=account_activation_token.make_token(user)
+            message=render_to_string('password_reset_subject.html',{
+                'user':user,
+                'domain':site,
+                'uid':urlsafe_base64_encode(force_bytes(user.pk)),
+                'token':token,
+            })
+            to_email=serializer.validated_data.get('email')
+            to_list=[to_email]
+            from_email='erich.getinger@outlook.de'
+            send_mail(mail_subject,message,from_email,to_list,fail_silently=False)
+            registration_response={
+                'detail':'An email has been sent to reset your password'
+            }
+            return Response(registration_response, status=200)
+        else:
+            return Response(serializer.errors, status=400)  
 
+class PasswortResetConfirmView(APIView):
+    serializer_class = PasswortConfirmSerializer
 
-INTERNAL_RESET_SESSION_TOKEN = "_password_reset_token"
+    def post(self, request, uidb64, token):
+        serializer=self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+        try:
+            uid = force_bytes(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            new_password = request.data.get('new_password')
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Password has been reset successfully'}, status=200)
+        else:
+            return Response({'error': 'Invalid link or token'}, status=400)  
+
+       

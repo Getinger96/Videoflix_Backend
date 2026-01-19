@@ -69,3 +69,26 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         attrs['username']=user.username
         data=super().validate(attrs)
         return data
+    
+
+class PasswortResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No user is associated with this email address.")
+        return value
+    
+
+class PasswortConfirmSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True)
+    confirmed_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        new_password = data.get('new_password')
+        confirmed_password = data.get('confirmed_password')
+        if new_password != confirmed_password:
+            raise serializers.ValidationError("Passwords do not match.")
+        return data
