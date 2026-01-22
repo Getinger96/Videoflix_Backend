@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('django-rq/', include('django_rq.urls')),
     path('api/',include('auth_app.api.urls')),
+    path('api/',include('videoflix.api.urls')),
 ] + debug_toolbar_urls()
