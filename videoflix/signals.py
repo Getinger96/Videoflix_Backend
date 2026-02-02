@@ -11,7 +11,7 @@ def video_post_save(sender, instance, created, **kwargs):
     if created:
         print('New Video created')
         queue = django_rq.get_queue('default', autocommit=True)
-        queue.enqueue(convert_all, instance.video_file.path)    
+        queue.enqueue(convert_all, instance.video_file.path, instance.id)    
     
 
     

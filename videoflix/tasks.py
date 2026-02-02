@@ -2,64 +2,35 @@ import subprocess
 import os
 
 
+def convert_to_hls(source, movie_id, resolution, height):
+    output_dir = f"media/hls/{movie_id}/{resolution}"
+    os.makedirs(output_dir, exist_ok=True)
 
-
-def convert_720p(source):
-    base, _ = os.path.splitext(source)
-    target = base + "_720p.mp4"
-
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-i", source,
-        "-vf", "scale=-2:720",
-        "-c:v", "libx264",
-        "-crf", "23",
-        "-c:a", "aac",
-        target
-    ]
-
-    subprocess.run(cmd, check=True)
-
-
-def convert_480p(source):
-    base, _ = os.path.splitext(source)
-    target = base + "_480p.mp4"
+    playlist = os.path.join(output_dir, "index.m3u8")
 
     cmd = [
         "ffmpeg",
         "-y",
         "-i", source,
-        "-vf", "scale=-2:480",
+        "-vf", f"scale=-2:{height}",
         "-c:v", "libx264",
-        "-crf", "23",
+        "-profile:v", "main",
+        "-crf", "20",
+        "-g", "48",
+        "-keyint_min", "48",
+        "-sc_threshold", "0",
         "-c:a", "aac",
-        target
+        "-ar", "48000",
+        "-hls_time", "4",
+        "-hls_playlist_type", "vod",
+        "-hls_segment_filename", f"{output_dir}/%03d.ts",
+        playlist
     ]
 
     subprocess.run(cmd, check=True)
 
 
-def convert_1080p(source):
-    base, _ = os.path.splitext(source)
-    target = base + "_1080p.mp4"
-
-    cmd = [
-        "ffmpeg",
-        "-y",
-        "-i", source,
-        "-vf", "scale=-2:1080",
-        "-c:v", "libx264",
-        "-crf", "23",
-        "-c:a", "aac",
-        target
-    ]
-
-    subprocess.run(cmd, check=True)
-
-
-
-def convert_all(path):
-    convert_720p(path)
-    convert_480p(path)
-    convert_1080p(path)
+def convert_all(source, movie_id):
+    convert_to_hls(source, movie_id, "480p", 480)
+    convert_to_hls(source, movie_id, "720p", 720)
+    convert_to_hls(source, movie_id, "1080p", 1080)
