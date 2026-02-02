@@ -30,234 +30,324 @@ from django.contrib.auth.tokens import default_token_generator
 
 
 User = get_user_model()
-
 class PasswordContextMixin:
+    """
+    Mixin to provide additional context data for password-related views.
+    """
+
     extra_context = None
 
     def get_context_data(self, **kwargs):
+        """
+        Extend the default context with title, subtitle, and extra context.
+
+        :return: Updated context dictionary
+        """
         context = super().get_context_data(**kwargs)
         context.update(
             {"title": self.title, "subtitle": None, **(self.extra_context or {})}
         )
         return context
 
-class RegistrationView(CreateAPIView):
-    serializer_class = Registrationserializer
-    
-    def post(self, request):
-        # Handle user registration logic here
 
+class RegistrationView(CreateAPIView):
+    """
+    API view for user registration.
+
+    Creates a new inactive user account and sends
+    an email with an activation link.
+    """
+
+    serializer_class = Registrationserializer
+
+    def post(self, request):
+        """
+        Handle user registration.
+
+        - Validate input data
+        - Create inactive user
+        - Generate activation token
+        - Send activation email
+
+        :param request: HTTP request with registration data
+        :return: Response with user info or validation errors
+        """
         serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
             user = serializer.save()
             user.is_active = False
             user.save()
-            site=request.get_host()
-            print(site)
-            mail_subject='Confirmation message'
-            token=account_activation_token.make_token(user)
-            message=render_to_string('acc_active_email.html',{
-                'user':user,
-                'domain':site,
-                'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-                'token':token,
-            })
-            to_email=serializer.validated_data.get('email')
-            to_list=[to_email]
-            from_email='erich.getinger@outlook.de'
-            send_mail(mail_subject,message,from_email,to_list,fail_silently=False)
-            registration_response={
-                'user':{
-                    'id':user.id,
-                    'email':user.email,
+
+            site = request.get_host()
+            mail_subject = 'Confirmation message'
+            token = account_activation_token.make_token(user)
+
+            message = render_to_string(
+                'acc_active_email.html',
+                {
+                    'user': user,
+                    'domain': site,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': token,
+                }
+            )
+
+            to_email = serializer.validated_data.get('email')
+            send_mail(
+                mail_subject,
+                message,
+                'erich.getinger@outlook.de',
+                [to_email],
+                fail_silently=False
+            )
+
+            return Response(
+                {
+                    'user': {
+                        'id': user.id,
+                        'email': user.email,
+                    },
+                    'token': token
                 },
-                'token':token
-            }
-            return Response(registration_response, status=201)
-        else:
-            return Response(serializer.errors, status=400)    
-        
-        
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ActivationView(APIView):
+    """
+    API view for activating a user account via email link.
+    """
+
     def get(self, request, uidb64, token):
-        # Handle account activation logic here
+        """
+        Activate the user account if the token is valid.
+
+        :param uidb64: Base64 encoded user ID
+        :param token: Activation token
+        :return: Activation status message
+        """
         try:
             uid = force_bytes(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             user = None
-        if user is not None and account_activation_token.check_token(user, token):
+
+        if user and account_activation_token.check_token(user, token):
             user.is_active = True
             user.save()
-            return Response({'message': 'Account activated successfully'}, status=200)
-        
+            return Response(
+                {'message': 'Account activated successfully'},
+                status=status.HTTP_200_OK
+            )
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
-    serializer_class=CustomTokenObtainPairSerializer
+    """
+    Custom login view that stores JWT tokens in HttpOnly cookies.
+    """
+
+    serializer_class = CustomTokenObtainPairSerializer
+
     def post(self, request, *args, **kwargs):
-        serializer=self.get_serializer(data=request.data)
-        if not serializer.is_valid(raise_exception=True):
-            return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
-        data={
-            'id':serializer.user.id,
-            'username':serializer.user.username,
+        """
+        Authenticate the user and set access/refresh tokens as cookies.
 
+        :return: Response with user info and cookies
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        }
         refresh = serializer.validated_data["refresh"]
-        access= serializer.validated_data["access"]
-        response =Response({"detail":"Login erfolgreich",'user':data},status=status.HTTP_200_OK)
+        access = serializer.validated_data["access"]
+
+        response = Response(
+            {
+                "detail": "Login successful",
+                "user": {
+                    "id": serializer.user.id,
+                    "username": serializer.user.username,
+                }
+            },
+            status=status.HTTP_200_OK
+        )
 
         response.set_cookie(
-            key= "access_token",
-            value= access,
+            key="access_token",
+            value=access,
             httponly=True,
             secure=True,
             samesite="Lax"
         )
 
         response.set_cookie(
-            key= "refresh_token",
-            value= refresh,
+            key="refresh_token",
+            value=refresh,
             httponly=True,
             secure=True,
             samesite="Lax"
-
         )
-        
-        return response 
-    
+
+        return response
+
 
 class CookieRefreshView(TokenRefreshView):
+    """
+    API view for refreshing the access token using cookies.
+    """
+
     def post(self, request, *args, **kwargs):
-        refresh_token=request.COOKIES.get("refresh_token")
+        """
+        Refresh the access token using the refresh token stored in cookies.
+
+        :return: New access token in HttpOnly cookie
+        """
+        refresh_token = request.COOKIES.get("refresh_token")
+
         if refresh_token is None:
-            return Response({"detail":"Refresh token not found!"},
-                            status=status.HTTP_400_BAD_REQUEST)
-        serializer=self.get_serializer(data={"refresh":refresh_token})
+            return Response(
+                {"detail": "Refresh token not found!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(data={"refresh": refresh_token})
+
         try:
             serializer.is_valid(raise_exception=True)
-        except:
-            return Response({"detail":"Refresh token invalid!"},
-                            status=status.HTTP_401_UNAUTHORIZED)
-        access_token=serializer.validated_data.get("access")
-        response=Response({"message":"access token refreshed"})
+        except Exception:
+            return Response(
+                {"detail": "Refresh token invalid!"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        access_token = serializer.validated_data.get("access")
+
+        response = Response({"message": "Access token refreshed"})
         response.set_cookie(
-            key= "access_token",
-            value= access_token,
+            key="access_token",
+            value=access_token,
             httponly=True,
             secure=True,
             samesite="Lax"
         )
+
         return response
-    
 
 
 class LogoutView(APIView):
-     """
-    API view for logging out a user.
-    Deletes the refresh token by blacklisting it and
-    removes the cookie from the client.
     """
-     permission_classes=[IsAuthenticated]
-     def post(self,request):
-        refresh_token=request.COOKIES.get("refresh_token")
-        refresh_token=RefreshToken(refresh_token)
-        refresh_token.blacklist()
-        response=Response()
-        response.delete_cookie("refresh_token")
-        response.data={"detail":"Logout successfully! All Tokens will be deleted. Refresh token is now invalid"}
-        return response
-     
+    API view for logging out a user.
 
+    Blacklists the refresh token and removes it from cookies.
+    """
 
-class CookieRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-         """
-        Handle POST request to invalidate the refresh token.
-        Removes refresh_token cookie and blacklists the token.
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
         """
-         refresh_token=request.COOKIES.get("refresh_token")
-         """
-        Convert the token into a RefreshToken object.
-        This allows the token to be blacklisted.
+        Invalidate the refresh token and log the user out.
+
+        :return: Logout confirmation message
         """
-         if refresh_token is None:
-            return Response({"detail":"Refresh token not found!"},
-                            status=status.HTTP_400_BAD_REQUEST)
-         serializer=self.get_serializer(data={"refresh":refresh_token})
-         try:
-            serializer.is_valid(raise_exception=True)
-         except:
-             return Response({"detail":"Refresh token invalid!"},
-                            status=status.HTTP_401_UNAUTHORIZED)
-         access_token=serializer.validated_data.get("access")
-         response=Response({"detail":" Token refreshed",'access':access_token})
-         """
-        Save the new access token as an HttpOnly cookie.
-        This cookie replaces the old access token.
-        """
-         response.set_cookie(
-            key= "access_token",
-            value= access_token,
-            httponly=True,
-            secure=True,
-            samesite="Lax"
+        refresh_token = request.COOKIES.get("refresh_token")
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+
+        response = Response(
+            {
+                "detail": (
+                    "Logout successful. Refresh token is invalidated "
+                    "and all tokens are removed."
+                )
+            }
         )
-         return response
-    
+        response.delete_cookie("refresh_token")
+        return response
+
 
 class PasswortResetView(CreateAPIView):
+    """
+    API view for requesting a password reset via email.
+    """
+
     serializer_class = PasswortResetSerializer
 
     def post(self, request):
-        # Handle user registration logic here
+        """
+        Send a password reset email with a secure token.
 
+        :return: Confirmation message
+        """
         serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
             user = User.objects.get(email=serializer.validated_data.get('email'))
-            site=request.get_host()
-            print(site)
-            mail_subject='Passwort Reset message'
-            token=account_activation_token.make_token(user)
-            message=render_to_string('password_reset_subject.html',{
-                'user':user,
-                'domain':site,
-                'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-                'token':token,
-            })
-            to_email=serializer.validated_data.get('email')
-            to_list=[to_email]
-            from_email='erich.getinger@outlook.de'
-            send_mail(mail_subject,message,from_email,to_list,fail_silently=False)
-            registration_response={
-                'detail':'An email has been sent to reset your password'
-            }
-            return Response(registration_response, status=200)
-        else:
-            return Response(serializer.errors, status=400)  
+            site = request.get_host()
+            token = account_activation_token.make_token(user)
+
+            message = render_to_string(
+                'password_reset_subject.html',
+                {
+                    'user': user,
+                    'domain': site,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': token,
+                }
+            )
+
+            send_mail(
+                'Password Reset',
+                message,
+                'erich.getinger@outlook.de',
+                [user.email],
+                fail_silently=False
+            )
+
+            return Response(
+                {'detail': 'An email has been sent to reset your password'},
+                status=status.HTTP_200_OK
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PasswortResetConfirmView(APIView):
+    """
+    API view for confirming and setting a new password.
+    """
+
     serializer_class = PasswortConfirmSerializer
 
     def post(self, request, uidb64, token):
-        serializer=self.serializer_class(data=request.data)
+        """
+        Validate the reset token and update the user's password.
+
+        :param uidb64: Base64 encoded user ID
+        :param token: Password reset token
+        :return: Password reset status
+        """
+        serializer = self.serializer_class(data=request.data)
+
         if not serializer.is_valid():
-            return Response(serializer.errors, status=400)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             uid = force_bytes(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             user = None
-        if user is not None and account_activation_token.check_token(user, token):
-            new_password = request.data.get('new_password')
-            user.set_password(new_password)
-            user.save()
-            return Response({'message': 'Password has been reset successfully'}, status=200)
-        else:
-            return Response({'error': 'Invalid link or token'}, status=400)  
 
-       
+        if user and account_activation_token.check_token(user, token):
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response(
+                {'message': 'Password has been reset successfully'},
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            {'error': 'Invalid link or token'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
