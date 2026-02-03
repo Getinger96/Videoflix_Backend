@@ -98,17 +98,12 @@ pip install -r requirements.txt
 
 ## ▶️ Running the Project
 
-### 1. Apply database migrations
+###  Build and start the Docker containers
 
 ```bash
-python manage.py migrate
+docker-compose up --build
 ```
 
-### 2. Start the development server
-
-```bash
-python manage.py runserver
-```
 
 The API will be available at:
 
