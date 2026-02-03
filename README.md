@@ -98,7 +98,10 @@ pip install -r requirements.txt
 
 ## ▶️ Running the Project
 
-###  Build and start the Docker containers
+### 1. Open the Docker Desktop appS
+
+
+### 2. Build and start the Docker containers
 
 ```bash
 docker-compose up --build
