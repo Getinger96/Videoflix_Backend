@@ -36,6 +36,7 @@ Videoflix uses **JWT-based authentication**.
 
 ```http
 Authorization: Bearer <access_token>
+```
 
 ## 🎥 Video & Streaming
 
@@ -72,6 +73,7 @@ Video playback is handled using **HTTP Live Streaming (HLS)**:
 
 ```bash
 git clone <repository_url>
+```
 
 ### 2. Open the project in your IDE
 
@@ -86,11 +88,13 @@ Navigate into the project directory and open it using your preferred IDE
 python -m venv env
 source env/bin/activate    # Linux / macOS
 env\Scripts\activate       # Windows
+```
 
 ### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
+```
 
 ## ▶️ Running the Project
 
@@ -98,16 +102,19 @@ pip install -r requirements.txt
 
 ```bash
 python manage.py migrate
+```
 
 ### 2. Start the development server
 
 ```bash
 python manage.py runserver
+```
 
 The API will be available at:
 
 ```text
 http://127.0.0.1:8000/
+```
 
 ## 🧪 Testing (Optional)
 
@@ -115,3 +122,4 @@ Run the test suite using:
 
 ```bash
 python manage.py test
+```
