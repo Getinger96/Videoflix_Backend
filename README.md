@@ -39,61 +39,79 @@ Authorization: Bearer <access_token>
 
 ## 🎥 Video & Streaming
 
-Method	Endpoint	Description
-GET	/api/video/	List all available videos
-GET	/api/video/<int:movie_id>/<str:resolution>/index.m3u8	HLS playlist for selected resolution
-GET	/api/video/<int:movie_id>/<str:resolution>/<str:segment>/	Video segment
+Videoflix provides video playback using **HTTP Live Streaming (HLS)**.  
+Videos are delivered via `.m3u8` playlists and segmented media files, allowing efficient and adaptive streaming.
 
-📌 Supported resolutions (example):
-360p, 480p, 720p, 1080p
+### Available Endpoints
 
-## ▶️ Video Streaming
+| Method | Endpoint | Description |
+|------|---------|-------------|
+| GET | `/api/video/` | Retrieve a list of all available videos |
+| GET | `/api/video/<int:movie_id>/<str:resolution>/index.m3u8` | HLS playlist for the selected video and resolution |
+| GET | `/api/video/<int:movie_id>/<str:resolution>/<str:segment>/` | Stream a specific video segment |
 
-Video playback is handled using HTTP Live Streaming (HLS):
+**Supported resolutions (example):**  
+`360p`, `480p`, `720p`, `1080p`
 
-The client requests the .m3u8 playlist
+---
 
-The playlist references multiple video segments
+## ▶️ Video Streaming Workflow
 
-Segments are streamed sequentially
+Video playback is handled using **HTTP Live Streaming (HLS)**:
 
-Adaptive bitrate streaming enables smooth playback
+1. The client requests the `.m3u8` playlist for a selected video and resolution  
+2. The playlist contains references to multiple video segments  
+3. Video segments are streamed sequentially  
+4. Adaptive bitrate streaming ensures smooth playback based on network conditions  
 
-### Installation
+---
 
-1. Clone the repository:
+## ⚙️ Installation
+
+### 1. Clone the repository
 
 ```bash
 git clone <repository_url>
-```
-1.5 Open the folder on your ide
 
-2. Create a virtual environment:
+### 2. Open the project in your IDE
+
+Navigate into the project directory and open it using your preferred IDE  
+(e.g. VS Code, PyCharm, IntelliJ).
+
+---
+
+### 3. Create and activate a virtual environment
 
 ```bash
 python -m venv env
-source env/bin/activate   # Linux / macOS
-env\Scripts\activate      # Windows
-```
+source env/bin/activate    # Linux / macOS
+env\Scripts\activate       # Windows
 
-3. Install required dependencies:
+### 4. Install dependencies
 
 ```bash
 pip install -r requirements.txt
-```
-### Running the Project
-S
-1. Apply migrations:
+
+## ▶️ Running the Project
+
+### 1. Apply database migrations
 
 ```bash
 python manage.py migrate
-```
 
-2. Start the development server:
+### 2. Start the development server
 
 ```bash
 python manage.py runserver
-```
 
-🧪 Testing (Optional)
+The API will be available at:
+
+```text
+http://127.0.0.1:8000/
+
+## 🧪 Testing (Optional)
+
+Run the test suite using:
+
+```bash
 python manage.py test
