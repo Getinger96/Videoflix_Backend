@@ -98,7 +98,7 @@ pip install -r requirements.txt
 
 ## ▶️ Running the Project
 
-### 1. Open the Docker Desktop appS
+### 1. Open the Docker Desktop App
 
 
 ### 2. Build and start the Docker containers
