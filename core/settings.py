@@ -31,6 +31,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",")
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", default="http://localhost:4200").split(",")
+
+
 
 
 # Application definition
@@ -178,12 +181,7 @@ INTERNAL_IPS = [
 ]
 
 
-def show_toolbar(request):
-    return True
 
-DEBUG_TOOLBAR_CONFIG = {
-  "SHOW_TOOLBAR_CALLBACK" : show_toolbar,
-}
 
 
 EMAIL_BACKEND = os.getenv(
