@@ -28,15 +28,19 @@ Video delivery is based on **HLS (HTTP Live Streaming)** using `.m3u8` playlists
 
 ## 🔐 Authentication
 
-Videoflix uses **JWT-based authentication**.
+Videoflix uses **cookie-based JWT authentication**.
 
-- Access Token for authorized API requests
-- Refresh Token to renew expired access tokens
-- Protected endpoints require the following HTTP header:
+- Access Token is stored in an HTTP-only cookie and used for authorized API requests automatically.
+- Refresh Token is also stored in a cookie and can be used to renew expired access tokens.
+- Protected endpoints do not require an explicit Authorization header; the server reads the token from the cookie.
+- Example request (browser automatically includes the cookie):
 
-```http
-Authorization: Bearer <access_token>
-```
+
+GET /api/protected-endpoint HTTP/1.1
+Host: api.videoflix.com
+Cookie: access_token=<access_token>; refresh_token=<refresh_token>
+
+- To renew the access token, send a request to the refresh endpoint. The server will read the refresh token from the cookie and return a new access token in the cookie.
 
 ## 🎥 Video & Streaming
 
