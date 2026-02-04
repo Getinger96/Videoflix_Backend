@@ -67,52 +67,46 @@ Video playback is handled using **HTTP Live Streaming (HLS)**:
 
 ---
 
-## ⚙️ Installation
-
-### 1. Clone the repository
-
-```bash
+## ⚙️ Installation & Setup (Docker)
+1. Clone the repository
 git clone <repository_url>
-```
+cd <repository_name>
 
-### 2. Open the project in your IDE
+2. Create a .env file
 
-Navigate into the project directory and open it using your preferred IDE  
-(e.g. VS Code, PyCharm, IntelliJ).
+Create a .env file in the project root directory (or copy it from .env.example if provided):
 
----
-
-### 3. Create and activate a virtual environment
-
-```bash
-python -m venv env
-source env/bin/activate    # Linux / macOS
-env\Scripts\activate       # Windows
-```
-
-### 4. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-## ▶️ Running the Project
-
-### 1. Open the Docker Desktop App
+ENV=development
+DEBUG=True
 
 
-### 2. Build and start the Docker containers
+⚠️ Important:
+Even though the project is started using Docker, the .env file is required because it is read by the Docker containers.
 
-```bash
+## ▶️ Running the Project (Docker)
+1. Start Docker Desktop
+
+Make sure Docker Desktop is running on your machine.
+
+2. Build and start the Docker containers
 docker-compose up --build
-```
 
+
+Docker will handle:
+
+the Python environment
+
+installing all dependencies
+
+starting the application
+
+➡️ No local virtual environment (venv) is required.
+
+3. Access the application
 
 The API will be available at:
 
-```text
 http://127.0.0.1:8000/
-```
 
 ## 🧪 Testing (Optional)
 
