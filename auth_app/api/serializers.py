@@ -21,7 +21,7 @@ class Registrationserializer(serializers.ModelSerializer):
         Meta configuration for Registrationserializer.
         """
         model = User
-        fields = ['username', 'email', 'password', 'confirmed_password']
+        fields = ['email', 'password', 'confirmed_password']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True}
@@ -63,7 +63,7 @@ class Registrationserializer(serializers.ModelSerializer):
         pw = self.validated_data['password']
         account = User(
             email=self.validated_data['email'],
-            username=self.validated_data['username']
+            
         )
         account.set_password(pw)
         account.save()
