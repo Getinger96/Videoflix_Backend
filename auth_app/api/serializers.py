@@ -61,9 +61,12 @@ class Registrationserializer(serializers.ModelSerializer):
         :return: The created User instance
         """
         pw = self.validated_data['password']
+        username = self.validated_data['email'].split('@')[0]
+        if User.objects.filter(username=username).exists():
+            username = f"{username}_{User.objects.count() + 1}"
         account = User(
             email=self.validated_data['email'],
-            
+            username=username
         )
         account.set_password(pw)
         account.save()

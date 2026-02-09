@@ -27,6 +27,7 @@ from django.views.generic.edit import FormView
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 
 
 User = get_user_model()
@@ -97,7 +98,7 @@ class RegistrationView(CreateAPIView):
             send_mail(
                 mail_subject,
                 message,
-                'erich.getinger@outlook.de',
+                settings.DEFAULT_FROM_EMAIL,
                 [to_email],
                 fail_silently=False
             )
