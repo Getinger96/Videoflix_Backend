@@ -28,6 +28,8 @@ from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
 
 
 User = get_user_model()
@@ -84,25 +86,36 @@ class RegistrationView(CreateAPIView):
             mail_subject = 'Confirmation message'
             token = account_activation_token.make_token(user)
 
-            message = render_to_string(
+            html_content = render_to_string(
                 'acc_active_email.html',
                 {
                     'user': user,
-                    'domain': site,
+                    'frontend_url': settings.FRONTEND_URL,
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                     'token': token,
+                    
+                }
+                )
+            text_content= render_to_string(
+                'acc_active_email.txt',
+                {
+                    'user': user,
+                    'frontend_url': settings.FRONTEND_URL,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': token,
+                    
                 }
             )
 
             to_email = serializer.validated_data.get('email')
-            send_mail(
-                mail_subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [to_email],
-                fail_silently=False
+            email = EmailMultiAlternatives(
+                subject=mail_subject,
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[to_email]
             )
-
+            email.attach_alternative(html_content, "text/html")
+            email.send()
             return Response(
                 {
                     'user': {
@@ -288,23 +301,34 @@ class PasswortResetView(CreateAPIView):
             site = request.get_host()
             token = account_activation_token.make_token(user)
 
-            message = render_to_string(
+
+            text_content = render_to_string(
+                'password_reset_subject.txt',  
+                {
+                    'user': user,
+                    'frontend_url': settings.FRONTEND_URL,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': token,
+                }                   )
+
+            html_content = render_to_string(
                 'password_reset_subject.html',
                 {
                     'user': user,
-                    'domain': site,
+                    'frontend_url': settings.FRONTEND_URL,
                     'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                     'token': token,
                 }
             )
 
-            send_mail(
-                'Password Reset',
-                message,
-                'erich.getinger@outlook.de',
-                [user.email],
-                fail_silently=False
+            msg=EmailMultiAlternatives(
+                subject='Password Reset Request',
+                body=text_content,
+                 from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email]
             )
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
 
             return Response(
                 {'detail': 'An email has been sent to reset your password'},

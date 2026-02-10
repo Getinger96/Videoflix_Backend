@@ -146,7 +146,7 @@ class PasswortConfirmSerializer(serializers.Serializer):
     """
 
     new_password = serializers.CharField(write_only=True)
-    confirmed_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         """
@@ -157,9 +157,9 @@ class PasswortConfirmSerializer(serializers.Serializer):
         :raises ValidationError: If passwords do not match
         """
         new_password = data.get('new_password')
-        confirmed_password = data.get('confirmed_password')
+        confirm_password = data.get('confirm_password')
 
-        if new_password != confirmed_password:
+        if new_password != confirm_password:
             raise serializers.ValidationError("Passwords do not match.")
 
         return data
