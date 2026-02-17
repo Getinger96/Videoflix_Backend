@@ -266,18 +266,17 @@ class LogoutView(APIView):
         :return: Logout confirmation message
         """
         refresh_token = request.COOKIES.get("refresh_token")
-        token = RefreshToken(refresh_token)
-        token.blacklist()
-
-        response = Response(
-            {
+        refresh_token = RefreshToken(refresh_token)
+        refresh_token.blacklist()
+        response = Response()
+        response.delete_cookie("refresh_token")
+        response.delete_cookie("access_token")
+        response.data = { 
                 "detail": (
                     "Logout successful. Refresh token is invalidated "
                     "and all tokens are removed."
                 )
             }
-        )
-        response.delete_cookie("refresh_token")
         return response
 
 

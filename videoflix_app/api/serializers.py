@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from videoflix.models import Video
+from videoflix_app.models import Video
 
 
 

@@ -4,7 +4,7 @@ import os
 from .tasks import convert_all
 import django_rq
 
-from videoflix.models import Video
+from videoflix_app.models import Video
 @receiver(post_save, sender=Video)
 def video_post_save(sender, instance, created, **kwargs):
     """

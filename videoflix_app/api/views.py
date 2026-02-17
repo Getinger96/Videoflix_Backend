@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from .serializers import VideoSerializer
-from videoflix.models import Video
+from videoflix_app.models import Video
 from rest_framework.response import Response
 from django.http import FileResponse, Http404
 import os
