@@ -6,7 +6,6 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator as account_activation_token
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework_simplejwt.views import (
@@ -15,21 +14,10 @@ from rest_framework_simplejwt.views import (
 )
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken , AccessToken
-from django.contrib.auth.decorators import login_not_required, login_required
-from django.utils.decorators import method_decorator
-from django.contrib.auth.forms import (
-    AuthenticationForm,
-    PasswordChangeForm,
-    PasswordResetForm,
-    SetPasswordForm,
-)
-from django.views.generic.edit import FormView
-from django.urls import reverse_lazy
-from django.views.decorators.csrf import csrf_protect
-from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from django.utils.html import strip_tags
+from django.middleware.csrf import get_token
+
 
 
 User = get_user_model()
@@ -172,6 +160,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         :return: Response with user info and cookies
         """
         serializer = self.get_serializer(data=request.data)
+        print(request.data)
         serializer.is_valid(raise_exception=True)
 
         refresh = serializer.validated_data["refresh"]
@@ -187,12 +176,15 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             },
             status=status.HTTP_200_OK
         )
+        
+
+        get_token(request)  # Ensure CSRF token is set
 
         response.set_cookie(
             key="access_token",
             value=access,
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Lax"
         )
 
@@ -200,10 +192,10 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             key="refresh_token",
             value=refresh,
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Lax"
         )
-
+        
         return response
 
 
@@ -243,7 +235,7 @@ class CookieRefreshView(TokenRefreshView):
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=True,
+            secure=False,
             samesite="Lax"
         )
 
@@ -257,7 +249,6 @@ class LogoutView(APIView):
     Blacklists the refresh token and removes it from cookies.
     """
 
-    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         """

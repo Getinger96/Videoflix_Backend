@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -12,7 +13,7 @@ class Registrationserializer(serializers.ModelSerializer):
     - Username
     - Email
     - Password confirmation
-    """
+    """ 
 
     confirmed_password = serializers.CharField(write_only=True)
 
@@ -77,42 +78,34 @@ User = get_user_model()
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """
-    Custom JWT serializer that authenticates users via email instead of username.
-    """
+
+    username_field = "email"
 
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def __init__(self, *args, **kwargs):
-        """
-        Remove the default username field from the serializer.
-        """
         super().__init__(*args, **kwargs)
-        if "username" in self.fields:
-            self.fields.pop("username")
+        # Standard username Feld entfernen
+        self.fields.pop("username", None)
 
     def validate(self, attrs):
-        """
-        Validate user credentials using email and password.
-
-        :param attrs: Dictionary containing email and password
-        :return: JWT token data
-        :raises ValidationError: If credentials are invalid
-        """
         email = attrs.get("email")
         password = attrs.get("password")
 
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid email or password")
+            raise AuthenticationFailed("Invalid email or password")
 
         if not user.check_password(password):
-            raise serializers.ValidationError("Invalid email or password")
+            raise AuthenticationFailed("Invalid email or password")
 
-        attrs['username'] = user.username
-        data = super().validate(attrs)
+        data = super().validate({
+            "username": user.username,
+            "password": password
+        })
+
         return data
 
 

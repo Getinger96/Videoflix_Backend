@@ -93,7 +93,9 @@ Even though the project is started using Docker, the .env file is required becau
 Make sure Docker Desktop is running on your machine.
 
 2. Build and start the Docker containers
+```bash
 docker-compose up --build
+```
 
 
 Docker will handle:
