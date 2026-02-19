@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
+import rest_framework_simplejwt
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -74,38 +75,40 @@ class Registrationserializer(serializers.ModelSerializer):
         return account
 
 
+
 User = get_user_model()
+
+
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
-    username_field = "email"
-
+    
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Standard username Feld entfernen
-        self.fields.pop("username", None)
+    def validate(self,attrs):
+        """
+        Validate the provided login credentials:
+        - Ensure user exists
+        - Check the password manually
+        - If valid, proceed with SimpleJWT token generation
 
-    def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("password")
-
+        Adds the user's email to the returned attributes.
+        """
+        
+        email=attrs.get("email")
+        password=attrs.get("password")
+        user=User.objects.get(email=email)
+        username=user.username
         try:
-            user = User.objects.get(email=email)
+            user=User.objects.get(email=email)
         except User.DoesNotExist:
-            raise AuthenticationFailed("Invalid email or password")
-
+         raise serializers.ValidationError("ungültiger Email oder Password")
         if not user.check_password(password):
-            raise AuthenticationFailed("Invalid email or password")
-
-        data = super().validate({
-            "username": user.username,
-            "password": password
-        })
-
+            raise serializers.ValidationError("ungültiger Email oder Password")
+        data={'username':username}
+    
         return data
 
 

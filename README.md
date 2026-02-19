@@ -73,8 +73,10 @@ Video playback is handled using **HTTP Live Streaming (HLS)**:
 
 ## ⚙️ Installation & Setup (Docker)
 1. Clone the repository
+```bash
 git clone <repository_url>
 cd <repository_name>
+```
 
 2. Create a .env file
 
