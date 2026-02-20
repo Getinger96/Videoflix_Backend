@@ -2,8 +2,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
-import rest_framework_simplejwt
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenObtainSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class Registrationserializer(serializers.ModelSerializer):
@@ -78,38 +78,33 @@ class Registrationserializer(serializers.ModelSerializer):
 
 User = get_user_model()
 
+class EmailTokenObtainSerializer(TokenObtainSerializer):
+    username_field = 'email'
 
 
+class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-
-    
+   
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
-    def validate(self,attrs):
-        """
-        Validate the provided login credentials:
-        - Ensure user exists
-        - Check the password manually
-        - If valid, proceed with SimpleJWT token generation
+    def validate(self, attrs):
+     email = attrs.get("email")
+     password = attrs.get("password")
 
-        Adds the user's email to the returned attributes.
-        """
-        
-        email=attrs.get("email")
-        password=attrs.get("password")
-        user=User.objects.get(email=email)
-        username=user.username
-        try:
-            user=User.objects.get(email=email)
-        except User.DoesNotExist:
-         raise serializers.ValidationError("ungültiger Email oder Password")
-        if not user.check_password(password):
-            raise serializers.ValidationError("ungültiger Email oder Password")
-        data={'username':username}
+     try:
+        user = User.objects.get(email=email)
+     except User.DoesNotExist:
+        raise serializers.ValidationError("ungültiger Email oder Password")
+
+     if not user.check_password(password):
+        raise serializers.ValidationError("ungültiger Email oder Password")
+
+     
+     return super().validate(attrs)
+
     
-        return data
+        
 
 
 class PasswortResetSerializer(serializers.Serializer):
