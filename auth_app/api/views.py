@@ -17,6 +17,9 @@ from rest_framework_simplejwt.tokens import RefreshToken , AccessToken
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.middleware.csrf import get_token
+from email.mime.base import MIMEBase
+from email import encoders
+import os
 
 
 
@@ -103,6 +106,18 @@ class RegistrationView(CreateAPIView):
                 to=[to_email]
             )
             email.attach_alternative(html_content, "text/html")
+            logo_path = os.path.join(settings.BASE_DIR, 'email_assets', 'logo_icon.svg')
+
+
+            with open(logo_path, 'rb') as f:
+             logo = MIMEBase('image', 'svg+xml')
+             logo.set_payload(f.read())
+             encoders.encode_base64(logo)
+ 
+             logo.add_header('Content-ID', '<logo_image>')
+             logo.add_header('Content-Disposition', 'inline', filename='logo_icon.svg')
+
+             email.attach(logo)
             email.send()
             return Response(
                 {
@@ -317,6 +332,18 @@ class PasswortResetView(CreateAPIView):
                 to=[user.email]
             )
             msg.attach_alternative(html_content, "text/html")
+            logo_path = os.path.join(settings.BASE_DIR, 'email_assets', 'logo_icon.svg')
+
+
+            with open(logo_path, 'rb') as f:
+             logo = MIMEBase('image', 'svg+xml')
+             logo.set_payload(f.read())
+             encoders.encode_base64(logo)
+ 
+             logo.add_header('Content-ID', '<logo_image>')
+             logo.add_header('Content-Disposition', 'inline', filename='logo_icon.svg')
+
+             msg.attach(logo)
             msg.send()
 
             return Response(
