@@ -3,7 +3,7 @@ from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from .serializers import Registrationserializer,CustomTokenObtainPairSerializer,PasswortResetSerializer, PasswortConfirmSerializer
 from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator as account_activation_token
 from django.contrib.auth import get_user_model
@@ -124,15 +124,8 @@ class ActivationView(APIView):
     """
 
     def get(self, request, uidb64, token):
-        """
-        Activate the user account if the token is valid.
-
-        :param uidb64: Base64 encoded user ID
-        :param token: Activation token
-        :return: Activation status message
-        """
         try:
-            uid = force_bytes(urlsafe_base64_decode(uidb64))
+            uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             user = None
@@ -143,6 +136,12 @@ class ActivationView(APIView):
             return Response(
                 {'message': 'Account activated successfully'},
                 status=status.HTTP_200_OK
+            )
+        else:
+            # ❌ Wichtig: Rückgabe auch bei Fehlern
+            return Response(
+                {'message': 'Activation link is invalid or expired'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 

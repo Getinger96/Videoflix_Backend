@@ -1,10 +1,14 @@
+from typing import Any
+
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
-from django.contrib.auth.models import User
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenObtainSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 
+from django.contrib.auth import authenticate, get_user_model
+from rest_framework_simplejwt.serializers import PasswordField, TokenObtainPairSerializer, TokenObtainSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework import exceptions
+User = get_user_model()
 
 class Registrationserializer(serializers.ModelSerializer):
     """
@@ -78,30 +82,18 @@ class Registrationserializer(serializers.ModelSerializer):
 
 User = get_user_model()
 
-class EmailTokenObtainSerializer(TokenObtainSerializer):
-    username_field = 'email'
 
+    
+     
 
-class CustomTokenObtainPairSerializer(EmailTokenObtainSerializer):
-
-   
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = User.USERNAME_FIELD  # Email wird als Login-Feld genutzt
 
     def validate(self, attrs):
-     email = attrs.get("email")
-     password = attrs.get("password")
-
-     try:
-        user = User.objects.get(email=email)
-     except User.DoesNotExist:
-        raise serializers.ValidationError("ungültiger Email oder Password")
-
-     if not user.check_password(password):
-        raise serializers.ValidationError("ungültiger Email oder Password")
-
-     
-     return super().validate(attrs)
+        data = super().validate(attrs)  # erzeugt access + refresh Tokens
+        data['email'] = self.user.email  # optional für Frontend
+        data['id'] = self.user.id
+        return data
 
     
         
