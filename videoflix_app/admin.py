@@ -5,6 +5,8 @@ from import_export.admin import ImportExportModelAdmin
 
 # Register your models here#
 
+#https://stackoverflow.com/questions/12626171/django-admin-choice-field
+
 class VideoResource(resources.ModelResource):
 
     class Meta:
@@ -13,4 +15,5 @@ class VideoResource(resources.ModelResource):
 @admin.register(Video)
 
 class VideoAdmin(ImportExportModelAdmin):
+    list_display = ['title', 'descripition','category']
     resource_class = VideoResource
