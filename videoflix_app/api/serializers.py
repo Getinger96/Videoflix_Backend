@@ -6,6 +6,7 @@ from videoflix_app.models import Video
 
 
 class VideoSerializer(serializers.ModelSerializer):
+    thumbnail_url = serializers.SerializerMethodField()
     """
     Serializer for the Video model.
 
@@ -14,6 +15,7 @@ class VideoSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
+        
         """
         Meta configuration for VideoSerializer.
         """
@@ -22,8 +24,16 @@ class VideoSerializer(serializers.ModelSerializer):
             'id',
             'created_at',
             'title',
-            'descripition',
+            'description',
             'thumbnail_url',
             'category',
         ]
 
+    def get_thumbnail_url(self, obj):
+         request = self.context.get('request')
+         if request is not None:
+            return request.build_absolute_uri(obj.thumbnail_url.url)
+         return obj.thumbnail_url.url
+
+
+    

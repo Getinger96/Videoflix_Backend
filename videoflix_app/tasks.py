@@ -38,6 +38,7 @@ def convert_to_hls(source, movie_id, resolution, height):
         "-ar", "48000",
         "-hls_time", "4",
         "-hls_playlist_type", "vod",
+        "-hls_base_url", f"/api/video/{movie_id}/{resolution}/",
         "-hls_segment_filename", f"{output_dir}/%03d.ts",
         playlist
     ]

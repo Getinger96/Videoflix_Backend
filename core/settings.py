@@ -105,6 +105,20 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "videoflix_db",
+#         "USER": "videoflix_user",
+#         "PASSWORD": "supersecretpassword",
+#         "HOST": "localhost",
+#         "PORT": "5432",
+#            "OPTIONS": {
+#             "client_encoding": "UTF8",
+#         },
+#     }
+# }
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -208,6 +222,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'auth_app.authentication.CookieJWTAuthentication',
     )
    
 }

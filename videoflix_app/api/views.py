@@ -27,7 +27,7 @@ class VideoListView(APIView):
         :return: Serialized list of videos
         """
         videos = Video.objects.all()
-        serializer = VideoSerializer(videos, many=True)
+        serializer = VideoSerializer(videos, many=True,context={'request': request})
         return Response(serializer.data)
 
 
@@ -44,41 +44,20 @@ class VideoSegmentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, movie_id, resolution, segment):
-        """
-        Stream a single HLS video segment.
+        # Falls URL index.m3u8/000.ts oder index.m3u8/003.ts
+        if segment.startswith("index.m3u8/"):
+            segment_file = segment.split("/", 1)[1]  # nur 000.ts, 001.ts etc.
+        else:
+            segment_file = segment
 
-        :param movie_id: ID of the video
-        :param resolution: Video resolution (e.g. 720p, 1080p)
-        :param segment: Segment filename (e.g. segment_000.ts)
-        :return: TS video segment as a streaming response
-        :raises Http404: If the video or segment does not exist
-        """
-        # Validate video existence
-        try:
-            video = Video.objects.get(pk=movie_id)
-        except Video.DoesNotExist:
-            raise Http404("Video not found")
+        file_path = os.path.join(settings.MEDIA_ROOT, 'hls', str(movie_id), resolution, segment_file)
 
-        # Build the file system path to the segment
-        segment_path = os.path.join(
-            settings.MEDIA_ROOT,
-            "hls",
-            str(movie_id),
-            resolution,
-            segment
-        )
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), content_type='video/MP2T')
+        raise Http404("Segment not found")
 
-        # Check if the segment file exists
-        if not os.path.exists(segment_path):
-            raise Http404("Segment not found")
-
-        # Stream the TS segment file
-        return FileResponse(
-            open(segment_path, "rb"),
-            content_type="video/MP2T"
-        )
-
-
+    
+    
 class VideoResolutionPlaylistView(APIView):
     """
     API view for serving the HLS playlist (index.m3u8)
@@ -88,26 +67,7 @@ class VideoResolutionPlaylistView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, movie_id, resolution):
-        """
-        Return the HLS playlist file for a given video and resolution.
-
-        :param movie_id: ID of the video
-        :param resolution: Video resolution (e.g. 720p, 1080p)
-        :return: M3U8 playlist file
-        :raises Http404: If the playlist file does not exist
-        """
-        path = os.path.join(
-            settings.MEDIA_ROOT,
-            "hls",
-            str(movie_id),
-            resolution,
-            "index.m3u8"
-        )
-
+        path = os.path.join(settings.MEDIA_ROOT, 'hls', str(movie_id), resolution, 'index.m3u8')
         if not os.path.exists(path):
             raise Http404("Playlist not found")
-
-        return FileResponse(
-            open(path, "rb"),
-            content_type="application/vnd.apple.mpegurl"
-        )
+        return FileResponse(open(path, 'rb'), content_type='application/vnd.apple.mpegurl')
