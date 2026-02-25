@@ -7,7 +7,7 @@ from django import forms
 
 # Register your models here#
 
-#https://stackoverflow.com/questions/12626171/django-admin-choice-field
+
 
 
 class VideoResource(resources.ModelResource):

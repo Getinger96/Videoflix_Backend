@@ -220,14 +220,35 @@ class LogoutView(APIView):
 
 
 class PasswortResetView(CreateAPIView):
+    """
+    API view for requesting a password reset via email.
+
+    Accepts a POST request with a valid email address,
+    generates a secure token and sends a password reset email to the user.
+    """
+
     serializer_class = PasswortResetSerializer
 
     def post(self, request):
+        """
+        Handle the password reset request.
+
+        - Validate the incoming email address
+        - Fetch the corresponding user
+        - Generate a secure reset token
+        - Send a password reset email
+
+        :param request: HTTP request containing the user's email address
+        :return: 200 confirmation message or 400 validation errors
+        """
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
             user = User.objects.get(email=serializer.validated_data.get('email'))
+            """Fetch the user associated with the provided email address."""
+
             token = account_activation_token.make_token(user)
+            """Generate a secure one-time token for the password reset link."""
 
             _send_token_email(
                 user=user,
@@ -236,6 +257,7 @@ class PasswortResetView(CreateAPIView):
                 html_template='password_reset_subject.html',
                 txt_template='password_reset_subject.txt',
             )
+            """Send the password reset email using both HTML and plain text templates."""
 
             return Response(
                 {'detail': 'An email has been sent to reset your password'},
@@ -243,6 +265,7 @@ class PasswortResetView(CreateAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        """Return validation errors if the provided data is invalid."""
 
 
 class PasswortResetConfirmView(APIView):
