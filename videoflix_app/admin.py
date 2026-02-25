@@ -29,16 +29,3 @@ class VideoAdmin(ImportExportModelAdmin):
 
 
 
-# from videoflix_app.models import Category
-
-# default_categories = [
-#     'Action', 'Comedy', 'Drama', 'Horror', 'Sci-Fi',
-#     'Documentary', 'Animation', 'Thriller', 'Romance',
-#     'Adventure', 'Fantasy', 'Mystery', 'Crime',
-#     'Musical', 'War', 'Western', 'Other'
-# ]
-
-# for name in default_categories:
-#     Category.objects.get_or_create(name=name)
-
-# print("Standard-Kategorien erstellt!")

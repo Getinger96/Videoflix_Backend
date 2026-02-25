@@ -1,0 +1,19 @@
+[
+  {"model": "videoflix_app.category", "pk": 1, "fields": {"name": "Action"}},
+  {"model": "videoflix_app.category", "pk": 2, "fields": {"name": "Comedy"}},
+  {"model": "videoflix_app.category", "pk": 3, "fields": {"name": "Drama"}},
+  {"model": "videoflix_app.category", "pk": 4, "fields": {"name": "Horror"}},
+  {"model": "videoflix_app.category", "pk": 5, "fields": {"name": "Sci-Fi"}},
+  {"model": "videoflix_app.category", "pk": 6, "fields": {"name": "Documentary"}},
+  {"model": "videoflix_app.category", "pk": 7, "fields": {"name": "Animation"}},
+  {"model": "videoflix_app.category", "pk": 8, "fields": {"name": "Thriller"}},
+  {"model": "videoflix_app.category", "pk": 9, "fields": {"name": "Romance"}},
+  {"model": "videoflix_app.category", "pk": 10, "fields": {"name": "Adventure"}},
+  {"model": "videoflix_app.category", "pk": 11, "fields": {"name": "Fantasy"}},
+  {"model": "videoflix_app.category", "pk": 12, "fields": {"name": "Mystery"}},
+  {"model": "videoflix_app.category", "pk": 13, "fields": {"name": "Crime"}},
+  {"model": "videoflix_app.category", "pk": 14, "fields": {"name": "Musical"}},
+  {"model": "videoflix_app.category", "pk": 15, "fields": {"name": "War"}},
+  {"model": "videoflix_app.category", "pk": 16, "fields": {"name": "Western"}},
+  {"model": "videoflix_app.category", "pk": 17, "fields": {"name": "Other"}}
+]

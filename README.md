@@ -110,6 +110,29 @@ starting the application
 
 ➡️ No local virtual environment (venv) is required.
 
+## ⚠️ Windows Users: Line Ending Fix (CRLF → LF)
+
+If you are cloning this project on **Windows**, Git may automatically convert line endings to `CRLF`.  
+This will cause the Docker backend container to crash with the following error:
+```
+exec ./backend.entrypoint.sh: no such file or directory
+videoflix_backend exited with code 255
+```
+
+### Fix in VS Code
+
+1. Open `backend.entrypoint.sh` in VS Code
+2. Click on **CRLF** in the bottom right corner of the editor
+3. Select **LF**
+4. Save the file (`Ctrl + S`)
+
+
+
+After fixing, restart the containers:
+```bash
+docker-compose up --build
+```
+
 3. Access the application
 
 The API will be available at:
