@@ -1,13 +1,6 @@
-from typing import Any
-
 from rest_framework import serializers
-from rest_framework.exceptions import AuthenticationFailed
-
-from django.contrib.auth import authenticate, get_user_model
-from rest_framework_simplejwt.serializers import PasswordField, TokenObtainPairSerializer, TokenObtainSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.settings import api_settings
-from rest_framework import exceptions
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import  TokenObtainPairSerializer
 User = get_user_model()
 
 class Registrationserializer(serializers.ModelSerializer):
@@ -79,26 +72,37 @@ class Registrationserializer(serializers.ModelSerializer):
         return account
 
 
-
-User = get_user_model()
-
-
-    
-     
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = User.USERNAME_FIELD  # Email wird als Login-Feld genutzt
+    """
+    Extended JWT serializer that embeds additional user information
+    into the token response.
+    """
+
+    username_field = User.USERNAME_FIELD  
+    """Defines the field used as the username identifier (e.g. 'email' or 'username')."""
 
     def validate(self, attrs):
-        data = super().validate(attrs)  # erzeugt access + refresh Tokens
-        data['email'] = self.user.email  # optional für Frontend
+        """
+        Validates the login credentials and extends the JWT response.
+
+        Args:
+            attrs (dict): The incoming authentication data (e.g. username & password).
+
+        Returns:
+            dict: The token response, extended with the user's 'email' and 'id'.
+        """
+        data = super().validate(attrs)  
+        """Calls the parent class – verifies credentials and generates access & refresh tokens."""
+        
+        data['email'] = self.user.email  
+        """Adds the authenticated user's email address to the response."""
+        
         data['id'] = self.user.id
+        """Adds the authenticated user's ID to the response."""
+        
         return data
 
     
-        
-
-
 class PasswortResetSerializer(serializers.Serializer):
     """
     Serializer for requesting a password reset via email.

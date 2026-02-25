@@ -19,7 +19,7 @@ Video delivery is based on **HLS (HTTP Live Streaming)** using `.m3u8` playlists
 
 ## 🛠️ Tech Stack (Example)
 
-- Backend: Django & Django REST Framework
+- Backend: Django6 & Django REST Framework, Python 3.12
 - Authentication: JWT
 - Streaming Protocol: HLS
 - Database: PostgreSQL / SQLite (depending on environment)

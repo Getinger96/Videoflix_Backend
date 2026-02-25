@@ -12,37 +12,18 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView
 )
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken , AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.middleware.csrf import get_token
 from email.mime.base import MIMEBase
 from email import encoders
 import os
+from .utils import _send_activation_email, _send_token_email
 
 
 
 User = get_user_model()
-class PasswordContextMixin:
-    """
-    Mixin to provide additional context data for password-related views.
-    """
-
-    extra_context = None
-
-    def get_context_data(self, **kwargs):
-        """
-        Extend the default context with title, subtitle, and extra context.
-
-        :return: Updated context dictionary
-        """
-        context = super().get_context_data(**kwargs)
-        context.update(
-            {"title": self.title, "subtitle": None, **(self.extra_context or {})}
-        )
-        return context
-
 
 class RegistrationView(CreateAPIView):
     """
@@ -73,60 +54,13 @@ class RegistrationView(CreateAPIView):
             user.is_active = False
             user.save()
 
-            site = request.get_host()
-            mail_subject = 'Confirmation message'
+           
             token = account_activation_token.make_token(user)
-
-            html_content = render_to_string(
-                'acc_active_email.html',
-                {
-                    'user': user,
-                    'frontend_url': settings.FRONTEND_URL,
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': token,
-                    
-                }
-                )
-            text_content= render_to_string(
-                'acc_active_email.txt',
-                {
-                    'user': user,
-                    'frontend_url': settings.FRONTEND_URL,
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': token,
-                    
-                }
-            )
-
             to_email = serializer.validated_data.get('email')
-            email = EmailMultiAlternatives(
-                subject=mail_subject,
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[to_email]
-            )
-            email.attach_alternative(html_content, "text/html")
-            logo_path = os.path.join(settings.BASE_DIR, 'email_assets', 'logo_icon.svg')
+            _send_activation_email(user, token, to_email)
 
-
-            with open(logo_path, 'rb') as f:
-             logo = MIMEBase('image', 'svg+xml')
-             logo.set_payload(f.read())
-             encoders.encode_base64(logo)
- 
-             logo.add_header('Content-ID', '<logo_image>')
-             logo.add_header('Content-Disposition', 'inline', filename='logo_icon.svg')
-
-             email.attach(logo)
-            email.send()
             return Response(
-                {
-                    'user': {
-                        'id': user.id,
-                        'email': user.email,
-                    },
-                    'token': token
-                },
+                {'user': {'id': user.id, 'email': user.email}, 'token': token},
                 status=status.HTTP_201_CREATED
             )
 
@@ -286,65 +220,22 @@ class LogoutView(APIView):
 
 
 class PasswortResetView(CreateAPIView):
-    """
-    API view for requesting a password reset via email.
-    """
-
     serializer_class = PasswortResetSerializer
 
     def post(self, request):
-        """
-        Send a password reset email with a secure token.
-
-        :return: Confirmation message
-        """
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
             user = User.objects.get(email=serializer.validated_data.get('email'))
-            site = request.get_host()
             token = account_activation_token.make_token(user)
 
-
-            text_content = render_to_string(
-                'password_reset_subject.txt',  
-                {
-                    'user': user,
-                    'frontend_url': settings.FRONTEND_URL,
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': token,
-                }                   )
-
-            html_content = render_to_string(
-                'password_reset_subject.html',
-                {
-                    'user': user,
-                    'frontend_url': settings.FRONTEND_URL,
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': token,
-                }
-            )
-
-            msg=EmailMultiAlternatives(
+            _send_token_email(
+                user=user,
+                token=token,
                 subject='Password Reset Request',
-                body=text_content,
-                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email]
+                html_template='password_reset_subject.html',
+                txt_template='password_reset_subject.txt',
             )
-            msg.attach_alternative(html_content, "text/html")
-            logo_path = os.path.join(settings.BASE_DIR, 'email_assets', 'logo_icon.svg')
-
-
-            with open(logo_path, 'rb') as f:
-             logo = MIMEBase('image', 'svg+xml')
-             logo.set_payload(f.read())
-             encoders.encode_base64(logo)
- 
-             logo.add_header('Content-ID', '<logo_image>')
-             logo.add_header('Content-Disposition', 'inline', filename='logo_icon.svg')
-
-             msg.attach(logo)
-            msg.send()
 
             return Response(
                 {'detail': 'An email has been sent to reset your password'},
