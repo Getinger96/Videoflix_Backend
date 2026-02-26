@@ -7,9 +7,6 @@ from django import forms
 
 # Register your models here#
 
-
-
-
 class VideoResource(resources.ModelResource):
 
     class Meta:

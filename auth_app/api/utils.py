@@ -1,12 +1,12 @@
 
 from django.conf import settings
-from django.utils.encoding import urlsafe_base64_encode, force_bytes
+from django.utils.encoding import force_bytes
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
 from email.mime.base import MIMEBase
 from email import encoders
 import os
-
+from django.utils.http import urlsafe_base64_encode
 
 def _build_email_context(user, token):
     """
