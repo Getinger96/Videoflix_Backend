@@ -79,7 +79,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
 
     username_field = User.USERNAME_FIELD  
-    """Defines the field used as the username identifier (e.g. 'email' or 'username')."""
 
     def validate(self, attrs):
         """
@@ -92,13 +91,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             dict: The token response, extended with the user's 'email' and 'id'.
         """
         data = super().validate(attrs)  
-        """Calls the parent class – verifies credentials and generates access & refresh tokens."""
-        
         data['email'] = self.user.email  
-        """Adds the authenticated user's email address to the response."""
-        
         data['id'] = self.user.id
-        """Adds the authenticated user's ID to the response."""
         
         return data
 
