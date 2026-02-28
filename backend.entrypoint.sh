@@ -16,7 +16,7 @@ echo "PostgreSQL ist bereit - fahre fort..."
 # Deine originalen Befehle (ohne wait_for_db)
 python manage.py collectstatic --noinput
 python manage.py makemigrations
-python manage.py loaddata default_categories || true  
+
 
 
 # Create a superuser using environment variables
