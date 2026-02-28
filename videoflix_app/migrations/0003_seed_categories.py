@@ -22,7 +22,7 @@ def reverse_seed(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('videoflix_app', '0002_rename_descripition_video_description.py'),  # <-- anpassen!
+        ('videoflix_app', '0002_rename_descripition_video_description'),  # <-- anpassen!
     ]
 
     operations = [
