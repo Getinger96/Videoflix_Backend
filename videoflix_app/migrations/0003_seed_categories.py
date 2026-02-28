@@ -4,8 +4,7 @@ from django.db import migrations
 DEFAULT_CATEGORIES = [
     "Action", "Comedy", "Drama", "Horror", "Sci-Fi",
     "Documentary", "Animation", "Thriller", "Romance",
-    "Adventure", "Fantasy", "Mystery", "Crime",
-    "Musical", "War", "Western", "Other"
+    "Adventure", 
 ]
 
 
