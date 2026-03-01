@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from .serializers import Registrationserializer,CustomTokenObtainPairSerializer,PasswortResetSerializer, PasswortConfirmSerializer
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes, force_str
@@ -26,13 +27,14 @@ from .utils import _send_activation_email, _send_token_email
 User = get_user_model()
 
 class RegistrationView(CreateAPIView):
+
     """
     API view for user registration.
 
     Creates a new inactive user account and sends
     an email with an activation link.
     """
-
+    permission_classes = [AllowAny]
     serializer_class = Registrationserializer
 
     def post(self, request):
@@ -71,7 +73,7 @@ class ActivationView(APIView):
     """
     API view for activating a user account via email link.
     """
-
+    permission_classes = [AllowAny]
     def get(self, request, uidb64, token):
         try:
             uid = force_str(urlsafe_base64_decode(uidb64))
@@ -98,7 +100,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     """
     Custom login view that stores JWT tokens in HttpOnly cookies.
     """
-
+    permission_classes = [AllowAny]
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
@@ -133,7 +135,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             value=access,
             httponly=True,
             secure=False,
-            samesite="Lax"
+            samesite="Lax",
+    
         )
 
         response.set_cookie(
@@ -141,7 +144,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             value=refresh,
             httponly=True,
             secure=False,
-            samesite="Lax"
+            samesite="Lax",
+       
         )
         
         return response
