@@ -218,13 +218,10 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
 REST_FRAMEWORK = {
-   
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        
+        'auth_app.authentication.CookieJWTAuthentication',  # ← zuerst
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'auth_app.authentication.CookieJWTAuthentication',
     )
-   
 }
 
 from datetime import timedelta
