@@ -16,8 +16,7 @@ echo "PostgreSQL ist bereit - fahre fort..."
 # Deine originalen Befehle (ohne wait_for_db)
 python manage.py collectstatic --noinput
 python manage.py makemigrations
-
-
+python manage.py migrate
 
 # Create a superuser using environment variables
 # (Dein Superuser-Erstellungs-Code bleibt gleich)
